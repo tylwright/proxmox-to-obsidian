@@ -1,0 +1,82 @@
+---
+tags:
+  - proxmox
+  - proxmox/dashboard
+type: proxmox/dashboard
+cluster_name: "{{ cluster_name | default('Proxmox') }}"
+total_vms: {{ total_vms | default(0) }}
+total_cts: {{ total_cts | default(0) }}
+total_cpu: {{ total_cpu | default(0) }}
+total_mem_gb: {{ total_mem_gb | default(0) }}
+last_synced: "{{ synced_at }}"
+---
+
+# Proxmox Dashboard
+
+> [!info] Cluster: {{ cluster_name | default("Proxmox") }}
+> **Total VMs:** {{ total_vms }} | **Total Containers:** {{ total_cts }}
+> **CPU Cores:** {{ total_cpu }} | **Memory:** {{ used_mem_gb | default(0) | round(1) }} / {{ total_mem_gb | default(0) | round(1) }} GB
+
+## Resource Summary
+
+| Resource | Value |
+| --- | --- |
+| Total VMs | {{ total_vms }} |
+| Total Containers | {{ total_cts }} |
+| Total CPU Cores | {{ total_cpu }} |
+| Total Memory | {{ total_mem_gb | default(0) | round(1) }} GB |
+| Used Memory | {{ used_mem_gb | default(0) | round(1) }} GB |
+
+{% if vms_by_status %}
+### VMs by Status
+
+| Status | Count |
+| --- | --- |
+{% for status, count in vms_by_status.items() %}
+| {{ status }} | {{ count }} |
+{% endfor %}
+{% endif %}
+
+{% if cts_by_status %}
+### Containers by Status
+
+| Status | Count |
+| --- | --- |
+{% for status, count in cts_by_status.items() %}
+| {{ status }} | {{ count }} |
+{% endfor %}
+{% endif %}
+
+## Node Status
+
+| Node | Status | CPU % | Memory % | Disk % |
+| --- | --- | --- | --- | --- |
+{% for n in nodes %}
+| [[{{ n.name }}]] | {{ n.status }} | {{ n.cpu | default("N/A") }} | {{ n.mem_pct | default(0) | round(1) }}% | {{ n.disk_pct | default(0) | round(1) }}% |
+{% endfor %}
+
+## All Virtual Machines
+
+```dataview
+TABLE status, node, cpu_cores, memory_mb, ip_address FROM #proxmox/vm SORT vmid
+```
+
+## All Containers
+
+```dataview
+TABLE status, node, cpu_cores, memory_mb, ip_address FROM #proxmox/container SORT vmid
+```
+
+## Stopped Guests
+
+```dataview
+TABLE status, node FROM #proxmox WHERE status = "stopped"
+```
+
+{% if mermaid_overview %}
+## Cluster Overview
+
+```mermaid
+{{ mermaid_overview }}
+```
+{% endif %}

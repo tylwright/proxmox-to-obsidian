@@ -1,0 +1,87 @@
+---
+tags:
+  - proxmox
+  - proxmox/cluster
+type: proxmox/cluster
+cluster_name: "{{ cluster.name | default('N/A') }}"
+quorate: {{ "true" if cluster.quorate else "false" }}
+total_nodes: {{ cluster.nodes | default(0) }}
+last_synced: "{{ synced_at }}"
+---
+
+# {{ cluster.name | default("Proxmox Cluster") }}
+
+{% if cluster.quorate %}
+> [!success] Cluster Quorate
+> Cluster is healthy with {{ cluster.nodes | default("N/A") }} node(s).
+{% else %}
+> [!danger] Cluster Not Quorate
+> The cluster has lost quorum.
+{% endif %}
+
+## Status
+
+| Property | Value |
+| --- | --- |
+| Cluster Name | {{ cluster.name | default("N/A") }} |
+| Version | {{ cluster.version | default("N/A") }} |
+| Quorate | {{ "Yes" if cluster.quorate else "No" }} |
+| Total Nodes | {{ cluster.nodes | default("N/A") }} |
+
+{% if members %}
+## Members
+
+| Node | ID | Online | IP |
+| --- | --- | --- | --- |
+{% for member in members %}
+| [[{{ member.name }}]] | {{ member.nodeid | default("N/A") }} | {{ "Yes" if member.online else "No" }} | {{ member.ip | default("N/A") }} |
+{% endfor %}
+{% endif %}
+
+{% if resources %}
+## Resource Summary
+
+| Type | Count |
+| --- | --- |
+{% for rtype, count in resources.items() %}
+| {{ rtype }} | {{ count }} |
+{% endfor %}
+{% endif %}
+
+{% if mermaid_diagram %}
+## Cluster Topology
+
+```mermaid
+{{ mermaid_diagram }}
+```
+{% endif %}
+
+{% if ha_groups %}
+## HA Groups
+
+| Name | Nodes | Restricted | No Failback |
+| --- | --- | --- | --- |
+{% for group in ha_groups %}
+| {{ group.name | default("N/A") }} | {{ group.nodes | default("N/A") }} | {{ "Yes" if group.restricted | default(false) else "No" }} | {{ "Yes" if group.nofailback | default(false) else "No" }} |
+{% endfor %}
+{% endif %}
+
+{% if ha_resources %}
+## HA Resources
+
+| SID | Group | State | Max Restart | Max Relocate |
+| --- | --- | --- | --- | --- |
+{% for res in ha_resources %}
+| {{ res.sid | default("N/A") }} | {{ res.group | default("N/A") }} | {{ res.state | default("N/A") }} | {{ res.max_restart | default("N/A") }} | {{ res.max_relocate | default("N/A") }} |
+{% endfor %}
+{% endif %}
+
+{% if replication_jobs %}
+## Replication
+
+| ID | Source | Target | Schedule | Rate | Enabled |
+| --- | --- | --- | --- | --- | --- |
+{% for job in replication_jobs %}
+| {{ job.id | default("N/A") }} | [[{{ job.source | default("N/A") }}]] | [[{{ job.target | default("N/A") }}]] | {{ job.schedule | default("N/A") }} | {{ job.rate | default("N/A") }} | {{ "Yes" if job.enabled | default(true) else "No" }} |
+{% endfor %}
+{% endif %}

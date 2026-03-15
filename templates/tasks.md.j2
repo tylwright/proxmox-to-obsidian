@@ -1,0 +1,28 @@
+---
+tags:
+  - proxmox
+  - proxmox/tasks
+type: proxmox/tasks
+last_synced: "{{ synced_at }}"
+---
+
+# Recent Tasks
+
+{% set ok_tasks = tasks | selectattr('status', 'equalto', 'OK') | list %}
+{% set failed_tasks = tasks | rejectattr('status', 'equalto', 'OK') | list %}
+
+{% if failed_tasks %}
+> [!danger] Failed Tasks
+> {{ failed_tasks | length }} task(s) completed with errors or warnings.
+{% else %}
+> [!success] All Tasks OK
+> All {{ tasks | length }} recent task(s) completed successfully.
+{% endif %}
+
+## Task History
+
+| Time | Node | Type | User | Status | Description |
+| --- | --- | --- | --- | --- | --- |
+{% for task in tasks %}
+| {{ task.starttime_str | default("N/A") }} | [[{{ task.node | default("N/A") }}]] | {{ task.type | default("N/A") }} | {{ task.user | default("N/A") }} | {{ task.status | default("N/A") }} | {{ task.description | default("") }} |
+{% endfor %}

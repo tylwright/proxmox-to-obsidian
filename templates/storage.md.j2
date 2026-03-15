@@ -1,0 +1,52 @@
+---
+tags:
+  - proxmox
+  - proxmox/storage
+type: proxmox/storage
+storage_name: "{{ storage.storage }}"
+storage_type: "{{ storage.type | default('unknown') }}"
+last_synced: "{{ synced_at }}"
+---
+
+# {{ storage.storage }}
+
+{% set critical_nodes = [] %}
+{% if nodes_usage %}
+{% for usage in nodes_usage %}
+{% if usage.pct | default(0) | float > 90 %}
+{% if critical_nodes.append(usage.node) %}{% endif %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if critical_nodes %}
+> [!danger] Storage Critical
+> Usage exceeds 90% on node(s): {{ critical_nodes | join(", ") }}.
+{% endif %}
+
+## Overview
+
+| Property | Value |
+| --- | --- |
+| Type | {{ storage.type | default("N/A") }} |
+| Content | {{ storage.content | default("N/A") }} |
+| Shared | {{ "Yes" if storage.shared | default(false) else "No" }} |
+| Enabled | {{ "Yes" if storage.enabled | default(true) else "No" }} |
+{% if storage.path is defined %}| Path | `{{ storage.path }}` |
+{% endif %}
+{% if storage.server is defined %}| Server | {{ storage.server }} |
+{% endif %}
+{% if storage.export is defined %}| Export | `{{ storage.export }}` |
+{% endif %}
+{% if storage.pool is defined %}| Pool | {{ storage.pool }} |
+{% endif %}
+
+{% if nodes_usage %}
+## Usage by Node
+
+| Node | Used | Total | Usage % |
+| --- | --- | --- | --- |
+{% for usage in nodes_usage %}
+| [[{{ usage.node }}]] | {{ (usage.used | default(0) / 1073741824) | round(1) }} GB | {{ (usage.total | default(0) / 1073741824) | round(1) }} GB | {{ usage.pct }}% |
+{% endfor %}
+{% endif %}

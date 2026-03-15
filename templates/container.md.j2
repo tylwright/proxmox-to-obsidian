@@ -1,0 +1,94 @@
+---
+tags:
+  - proxmox
+  - proxmox/container
+  - proxmox/lxc
+type: proxmox/container
+vmid: {{ ct.vmid }}
+node: "{{ ct.node | default(node) }}"
+status: "{{ ct.status }}"
+ip_address: "{{ networks[0].ip | default('N/A') if networks else 'N/A' }}"
+cpu_cores: {{ config.cores | default(0) }}
+memory_mb: {{ config.memory | default(0) }}
+last_synced: "{{ synced_at }}"
+---
+
+# {{ ct.name | default("CT " ~ ct.vmid) }}
+
+{% if ct.status == 'running' %}
+> [!success] Running
+> Container {{ ct.vmid }} is running on [[{{ ct.node | default(node) }}]]. Uptime: {{ uptime_str }}.
+{% elif ct.status == 'stopped' %}
+> [!warning] Stopped
+> Container {{ ct.vmid }} is stopped.
+{% else %}
+> [!danger] {{ ct.status | default('Unknown') | capitalize }}
+> Container {{ ct.vmid }} status: {{ ct.status | default('unknown') }}.
+{% endif %}
+
+## Overview
+
+| Property | Value |
+| --- | --- |
+| CTID | {{ ct.vmid }} |
+| Node | [[{{ ct.node | default(node) }}]] |
+| Status | {{ ct.status }} |
+| Uptime | {{ uptime_str }} |
+
+## Configuration
+
+| Property | Value |
+| --- | --- |
+| CPU Cores | {{ config.cores | default("N/A") }} |
+| Memory | {{ config.memory | default("N/A") }} MB |
+| Swap | {{ config.swap | default("N/A") }} MB |
+| OS Template | {{ config.ostemplate | default("N/A") }} |
+| Hostname | {{ config.hostname | default("N/A") }} |
+| Unprivileged | {{ "Yes" if config.unprivileged | default(false) else "No" }} |
+| OnBoot | {{ "Yes" if config.onboot | default(false) else "No" }} |
+
+{% if networks %}
+## Network Interfaces
+
+| Device | Bridge | IP | Gateway | HWADDR |
+| --- | --- | --- | --- | --- |
+{% for nic in networks %}
+| {{ nic.name }} | {{ nic.bridge | default("N/A") }} | {{ nic.ip | default("N/A") }} | {{ nic.gw | default("N/A") }} | {{ nic.hwaddr | default("N/A") }} |
+{% endfor %}
+{% endif %}
+
+{% if mountpoints %}
+## Mount Points
+
+| ID | Volume | Size | Mount Path |
+| --- | --- | --- | --- |
+{% for mp in mountpoints %}
+| {{ mp.id }} | {{ mp.volume | default("N/A") }} | {{ mp.size | default("N/A") }} | {{ mp.mp | default("N/A") }} |
+{% endfor %}
+{% endif %}
+
+{% if firewall_rules %}
+## Firewall Rules
+
+| Pos | Type | Action | Source | Dest | Proto | DPort | Comment | Enabled |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+{% for rule in firewall_rules %}
+| {{ rule.pos | default("N/A") }} | {{ rule.type | default("N/A") }} | {{ rule.action | default("N/A") }} | {{ rule.source | default("any") }} | {{ rule.dest | default("any") }} | {{ rule.proto | default("N/A") }} | {{ rule.dport | default("N/A") }} | {{ rule.comment | default("") }} | {{ "Yes" if rule.enabled | default(true) else "No" }} |
+{% endfor %}
+{% endif %}
+
+{% if snapshots %}
+## Snapshots
+
+| Name | Description | Date |
+| --- | --- | --- |
+{% for snap in snapshots %}
+| {{ snap.name }} | {{ snap.description | default("") }} | {{ snap.snaptime | default("N/A") }} |
+{% endfor %}
+{% endif %}
+
+{% if config.description %}
+## Notes
+
+{{ config.description }}
+{% endif %}

@@ -1,0 +1,94 @@
+---
+tags:
+  - proxmox
+  - proxmox/node
+type: proxmox/node
+node_name: "{{ node.node }}"
+status: "{{ node.status | default('unknown') }}"
+cpu_cores: {{ node.maxcpu | default(0) }}
+memory_gb: {{ mem_total_gb }}
+last_synced: "{{ synced_at }}"
+---
+
+# {{ node.node }}
+
+{% if node.status | default('unknown') == 'online' %}
+> [!success] Node Online
+> {{ node.node }} is running. Uptime: {{ uptime_str }}.
+{% elif node.status | default('unknown') == 'offline' %}
+> [!danger] Node Offline
+> {{ node.node }} is not responding.
+{% else %}
+> [!warning] Node Status: {{ node.status | default('unknown') }}
+> Status could not be determined.
+{% endif %}
+
+## Status
+
+| Property | Value |
+| --- | --- |
+| Status | {{ node.status | default("N/A") }} |
+| Uptime | {{ uptime_str }} |
+| CPU | {{ node.cpu | default(0) | round(2) }}% ({{ node.maxcpu | default("N/A") }} cores) |
+| Memory | {{ mem_used_gb }} GB / {{ mem_total_gb }} GB ({{ mem_pct }}%) |
+| Root Disk | {{ disk_used_gb }} GB / {{ disk_total_gb }} GB ({{ disk_pct }}%) |
+| Kernel | {{ node_status.kversion | default("N/A") }} |
+| PVE Version | {{ node_status.pveversion | default("N/A") }} |
+
+{% if mermaid_diagram %}
+## Topology
+
+```mermaid
+{{ mermaid_diagram }}
+```
+{% endif %}
+
+{% if vms %}
+## Virtual Machines
+
+| VMID | Name | Status | CPU | Memory |
+| --- | --- | --- | --- | --- |
+{% for vm in vms %}
+| {{ vm.vmid }} | [[{{ vm.name | default("vm-" ~ vm.vmid) }}]] | {{ vm.status }} | {{ vm.cpus | default("N/A") }} | {{ (vm.maxmem | default(0) / 1073741824) | round(1) }} GB |
+{% endfor %}
+{% endif %}
+
+{% if containers %}
+## Containers
+
+| CTID | Name | Status | CPU | Memory |
+| --- | --- | --- | --- | --- |
+{% for ct in containers %}
+| {{ ct.vmid }} | [[{{ ct.name | default("ct-" ~ ct.vmid) }}]] | {{ ct.status }} | {{ ct.cpus | default("N/A") }} | {{ (ct.maxmem | default(0) / 1073741824) | round(1) }} GB |
+{% endfor %}
+{% endif %}
+
+{% if storage %}
+## Storage
+
+| Name | Type | Used | Total | Content |
+| --- | --- | --- | --- | --- |
+{% for s in storage %}
+| [[{{ s.storage }}]] | {{ s.type | default("N/A") }} | {{ (s.used | default(0) / 1073741824) | round(1) }} GB | {{ (s.total | default(0) / 1073741824) | round(1) }} GB | {{ s.content | default("N/A") }} |
+{% endfor %}
+{% endif %}
+
+{% if networks %}
+## Networks
+
+| Name | Type | CIDR | Active | Bridge Ports |
+| --- | --- | --- | --- | --- |
+{% for net in networks %}
+| {{ net.iface }} | {{ net.type | default("N/A") }} | {{ net.cidr | default("N/A") }} | {{ "Yes" if net.active else "No" }} | {{ net.bridge_ports | default("N/A") }} |
+{% endfor %}
+{% endif %}
+
+{% if firewall_rules %}
+## Firewall Rules
+
+| Pos | Type | Action | Source | Dest | Proto | DPort | Comment | Enabled |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+{% for rule in firewall_rules %}
+| {{ rule.pos | default("N/A") }} | {{ rule.type | default("N/A") }} | {{ rule.action | default("N/A") }} | {{ rule.source | default("any") }} | {{ rule.dest | default("any") }} | {{ rule.proto | default("N/A") }} | {{ rule.dport | default("N/A") }} | {{ rule.comment | default("") }} | {{ "Yes" if rule.enabled | default(true) else "No" }} |
+{% endfor %}
+{% endif %}

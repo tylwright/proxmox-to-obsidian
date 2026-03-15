@@ -1,0 +1,57 @@
+---
+tags:
+  - proxmox
+  - proxmox/network
+type: proxmox/network
+node: "{{ node }}"
+iface: "{{ net.iface }}"
+active: {{ "true" if net.active else "false" }}
+last_synced: "{{ synced_at }}"
+---
+
+# {{ net.iface }} ({{ node }})
+
+{% if net.active %}
+> [!success] Active
+> Interface {{ net.iface }} is active on [[{{ node }}]].
+{% else %}
+> [!warning] Inactive
+> Interface {{ net.iface }} is not active on [[{{ node }}]].
+{% endif %}
+
+## Configuration
+
+| Property | Value |
+| --- | --- |
+| Node | [[{{ node }}]] |
+| Type | {{ net.type | default("N/A") }} |
+| Active | {{ "Yes" if net.active else "No" }} |
+| Method | {{ net.method | default("N/A") }} |
+{% if net.cidr is defined %}| CIDR | `{{ net.cidr }}` |
+{% endif %}
+{% if net.address is defined %}| Address | `{{ net.address }}` |
+{% endif %}
+{% if net.netmask is defined %}| Netmask | `{{ net.netmask }}` |
+{% endif %}
+{% if net.gateway is defined %}| Gateway | `{{ net.gateway }}` |
+{% endif %}
+{% if net.bridge_ports is defined %}| Bridge Ports | {{ net.bridge_ports }} |
+{% endif %}
+{% if net.bridge_stp is defined %}| STP | {{ net.bridge_stp }} |
+{% endif %}
+{% if net.bridge_fd is defined %}| Forward Delay | {{ net.bridge_fd }} |
+{% endif %}
+{% if net.bond_mode is defined %}| Bond Mode | {{ net.bond_mode }} |
+{% endif %}
+{% if net.slaves is defined %}| Slaves | {{ net.slaves }} |
+{% endif %}
+{% if net.mtu is defined %}| MTU | {{ net.mtu }} |
+{% endif %}
+{% if net.autostart is defined %}| Autostart | {{ "Yes" if net.autostart else "No" }} |
+{% endif %}
+
+{% if net.comments is defined %}
+## Notes
+
+{{ net.comments }}
+{% endif %}

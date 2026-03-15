@@ -1,0 +1,119 @@
+---
+tags:
+  - proxmox
+  - proxmox/vm
+type: proxmox/vm
+vmid: {{ vm.vmid }}
+node: "{{ vm.node | default(node) }}"
+status: "{{ vm.status }}"
+ip_address: "{{ ip_address | default('') }}"
+os_type: "{{ config.ostype | default('N/A') }}"
+cpu_cores: {{ config.cores | default(0) }}
+memory_mb: {{ config.memory | default(0) }}
+last_synced: "{{ synced_at }}"
+---
+
+# {{ vm.name | default("VM " ~ vm.vmid) }}
+
+{% if vm.status == 'running' %}
+> [!success] Running
+> VM {{ vm.vmid }} is running on [[{{ vm.node | default(node) }}]]. Uptime: {{ uptime_str }}.
+{% elif vm.status == 'stopped' %}
+> [!warning] Stopped
+> VM {{ vm.vmid }} is stopped.
+{% else %}
+> [!danger] {{ vm.status | default('Unknown') | capitalize }}
+> VM {{ vm.vmid }} status: {{ vm.status | default('unknown') }}.
+{% endif %}
+
+## Overview
+
+| Property | Value |
+| --- | --- |
+| VMID | {{ vm.vmid }} |
+| Node | [[{{ vm.node | default(node) }}]] |
+| Status | {{ vm.status }} |
+| Uptime | {{ uptime_str }} |
+
+## Hardware
+
+| Property | Value |
+| --- | --- |
+| CPU Cores | {{ config.cores | default("N/A") }} |
+| Sockets | {{ config.sockets | default(1) }} |
+| CPU Type | {{ config.cpu | default("N/A") }} |
+| Memory | {{ config.memory | default("N/A") }} MB |
+| BIOS | {{ config.bios | default("SeaBIOS") }} |
+| Machine | {{ config.machine | default("N/A") }} |
+| OS Type | {{ config.ostype | default("N/A") }} |
+
+{% if guest_agent and (guest_agent.os_info or guest_agent.interfaces) %}
+## Guest Agent
+
+{% if guest_agent.os_info %}
+### OS Information
+
+| Property | Value |
+| --- | --- |
+| OS Name | {{ guest_agent.os_info.name | default("N/A") }} |
+| Version | {{ guest_agent.os_info.version | default("N/A") }} |
+| Kernel | {{ guest_agent.os_info.kernel | default("N/A") }} |
+| Hostname | {{ guest_agent.os_info.hostname | default("N/A") }} |
+{% endif %}
+
+{% if guest_agent.interfaces %}
+### Network Interfaces (Guest Agent)
+
+| Name | IP Addresses | MAC Address |
+| --- | --- | --- |
+{% for iface in guest_agent.interfaces %}
+| {{ iface.name | default("N/A") }} | {{ iface.ips | default("N/A") }} | {{ iface.mac | default("N/A") }} |
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if disks %}
+## Disks
+
+| Bus | Storage | Size | Format |
+| --- | --- | --- | --- |
+{% for disk in disks %}
+| {{ disk.bus }} | {{ disk.storage }} | {{ disk.size }} | {{ disk.format }} |
+{% endfor %}
+{% endif %}
+
+{% if networks %}
+## Network Interfaces
+
+| Device | Bridge | Model | MAC | Firewall |
+| --- | --- | --- | --- | --- |
+{% for nic in networks %}
+| {{ nic.device }} | {{ nic.bridge | default("N/A") }} | {{ nic.model | default("N/A") }} | {{ nic.mac | default("N/A") }} | {{ nic.firewall | default("N/A") }} |
+{% endfor %}
+{% endif %}
+
+{% if firewall_rules %}
+## Firewall Rules
+
+| Pos | Type | Action | Source | Dest | Proto | DPort | Comment | Enabled |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+{% for rule in firewall_rules %}
+| {{ rule.pos | default("N/A") }} | {{ rule.type | default("N/A") }} | {{ rule.action | default("N/A") }} | {{ rule.source | default("any") }} | {{ rule.dest | default("any") }} | {{ rule.proto | default("N/A") }} | {{ rule.dport | default("N/A") }} | {{ rule.comment | default("") }} | {{ "Yes" if rule.enabled | default(true) else "No" }} |
+{% endfor %}
+{% endif %}
+
+{% if snapshots %}
+## Snapshots
+
+| Name | Description | Date |
+| --- | --- | --- |
+{% for snap in snapshots %}
+| {{ snap.name }} | {{ snap.description | default("") }} | {{ snap.snaptime | default("N/A") }} |
+{% endfor %}
+{% endif %}
+
+{% if config.description %}
+## Notes
+
+{{ config.description }}
+{% endif %}

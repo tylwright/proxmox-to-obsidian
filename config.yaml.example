@@ -1,0 +1,82 @@
+# ============================================================================
+# Proxmox-to-Obsidian Configuration
+# ============================================================================
+
+# --- Cluster Connection Settings ---
+#
+# You can configure one or more Proxmox clusters. Use the `clusters:` list
+# to sync from multiple clusters into a single Obsidian vault.
+#
+# NOTE: For backward compatibility, a single `proxmox:` key (see bottom of
+# this section) is still supported and will be treated as a single-cluster
+# configuration. If both `clusters:` and `proxmox:` are present, `clusters:`
+# takes precedence.
+
+clusters:
+  - name: "production"
+    host: "proxmox-prod.example.com"
+    port: 8006
+    verify_ssl: false
+
+    # Option 1: API Token authentication (recommended)
+    auth_method: "token"
+    user: "root@pam"
+    token_name: "obsidian"
+    token_value: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+    # Option 2: Username/password authentication
+    # auth_method: "password"
+    # user: "root@pam"
+    # password: "your-password"
+
+  # - name: "staging"
+  #   host: "proxmox-staging.example.com"
+  #   port: 8006
+  #   verify_ssl: false
+  #   auth_method: "token"
+  #   user: "root@pam"
+  #   token_name: "obsidian"
+  #   token_value: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Legacy single-cluster format (still works):
+# proxmox:
+#   host: "proxmox.example.com"
+#   port: 8006
+#   verify_ssl: false
+#   auth_method: "token"
+#   user: "root@pam"
+#   token_name: "obsidian"
+#   token_value: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# --- Obsidian Vault Settings ---
+obsidian:
+  vault_path: "/path/to/your/obsidian/vault"
+  base_folder: "Proxmox"
+
+# --- What to Sync ---
+# Set any value to false to skip that category.
+sync:
+  cluster: true
+  nodes: true
+  vms: true
+  containers: true
+  storage: true
+  networks: true
+  pools: true
+  backups: true
+  ha: true
+  firewall: true
+  replication: true
+  tasks: true
+  dashboard: true
+
+# --- Options ---
+options:
+  # Remove notes for resources that no longer exist in Proxmox
+  cleanup_stale: false
+
+  # Path to a directory of custom Jinja2 templates (overrides built-in ones)
+  custom_templates_dir: ""
+
+  # Suppress non-error output
+  quiet: false

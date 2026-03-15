@@ -1,0 +1,35 @@
+---
+tags:
+  - proxmox
+  - proxmox/pool
+type: proxmox/pool
+pool_name: "{{ pool.poolid }}"
+last_synced: "{{ synced_at }}"
+---
+
+# {{ pool.poolid }}
+
+{% if pool.comment %}
+> [!info] Pool Description
+> {{ pool.comment }}
+{% endif %}
+
+{% if members %}
+## Members
+
+| Type | ID | Name | Node | Status |
+| --- | --- | --- | --- | --- |
+{% for m in members %}
+| {{ m.type | default("N/A") }} | {{ m.vmid | default(m.id | default("N/A")) }} | [[{{ m.name | default("N/A") }}]] | [[{{ m.node | default("N/A") }}]] | {{ m.status | default("N/A") }} |
+{% endfor %}
+{% endif %}
+
+{% if storage_members %}
+## Storage
+
+| Name | Node |
+| --- | --- |
+{% for s in storage_members %}
+| [[{{ s.storage | default("N/A") }}]] | [[{{ s.node | default("N/A") }}]] |
+{% endfor %}
+{% endif %}

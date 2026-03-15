@@ -1,0 +1,45 @@
+---
+tags:
+  - proxmox
+  - proxmox/changelog
+type: proxmox/changelog
+last_synced: "{{ synced_at }}"
+---
+
+# Sync Changelog
+
+> [!info] Last Sync
+> {{ sync_time }}
+
+{% set added = changes | selectattr('action', 'equalto', 'added') | list %}
+{% set changed = changes | selectattr('action', 'equalto', 'changed') | list %}
+{% set removed = changes | selectattr('action', 'equalto', 'removed') | list %}
+
+{% if added %}
+## Added
+
+{% for item in added %}
+- **{{ item.resource_type }}** - [[{{ item.name }}]]: {{ item.details | default("New resource detected") }}
+{% endfor %}
+{% endif %}
+
+{% if changed %}
+## Changed
+
+{% for item in changed %}
+- **{{ item.resource_type }}** - [[{{ item.name }}]]: {{ item.details | default("Resource updated") }}
+{% endfor %}
+{% endif %}
+
+{% if removed %}
+## Removed
+
+{% for item in removed %}
+- **{{ item.resource_type }}** - {{ item.name }}: {{ item.details | default("Resource no longer present") }}
+{% endfor %}
+{% endif %}
+
+{% if not added and not changed and not removed %}
+> [!success] No Changes
+> No changes detected since last sync.
+{% endif %}

@@ -1,0 +1,46 @@
+---
+tags:
+  - proxmox
+  - proxmox/backup
+type: proxmox/backup
+job_id: "{{ job.id | default('N/A') }}"
+enabled: {{ "true" if job.enabled | default(true) else "false" }}
+last_synced: "{{ synced_at }}"
+---
+
+# Backup: {{ job.id | default("Unknown") }}
+
+{% if not job.enabled | default(true) %}
+> [!warning] Job Disabled
+> This backup job is currently disabled.
+{% endif %}
+
+## Schedule
+
+| Property | Value |
+| --- | --- |
+| ID | {{ job.id | default("N/A") }} |
+| Schedule | {{ job.schedule | default("N/A") }} |
+| Type | {{ job.type | default("N/A") }} |
+| Storage | [[{{ job.storage | default("N/A") }}]] |
+| Mode | {{ job.mode | default("N/A") }} |
+| Compression | {{ job.compress | default("N/A") }} |
+| Enabled | {{ "Yes" if job.enabled | default(true) else "No" }} |
+{% if job.mailnotification is defined %}| Mail Notification | {{ job.mailnotification }} |
+{% endif %}
+{% if job.mailto is defined %}| Mail To | {{ job.mailto }} |
+{% endif %}
+{% if job.node is defined %}| Node | [[{{ job.node }}]] |
+{% endif %}
+
+{% if job.vmid is defined %}
+## Included VMs/CTs
+
+{{ job.vmid }}
+{% endif %}
+
+{% if job.exclude is defined %}
+## Excluded VMs/CTs
+
+{{ job.exclude }}
+{% endif %}

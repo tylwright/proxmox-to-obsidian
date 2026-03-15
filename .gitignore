@@ -1,0 +1,8 @@
+config.yaml
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+*.plist
+custom_templates/
